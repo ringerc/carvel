@@ -29,6 +29,8 @@ See [state namespace](state-namespace.md) doc page.
 
 Some fields on a resource are immutable. kapp provides a `kapp.k14s.io/update-strategy` annotation that controls how kapp will update resource. One of the strategies is `fallback-on-replace` which will have kapp recreate an object (delete, wait, then create) if initial update results in `Invalid` error. See [Controlling apply via resource annotations](apply.md#controlling-apply-via-resource-annotations) for details.
 
+The CLI flag `--apply-default-update-strategy=fallback-on-replace` can be used to instruct `kapp` to default to this behavior for all resources. Consider specifically annotating specific resources you wish to protect from deletion if you use this.
+
 ---
 ## `Job.batch is invalid: ... spec.selector: Required value` error
 
@@ -125,3 +127,18 @@ Additional resources: [tty flag in kapp code](https://github.com/carvel-dev/kapp
 ## How can I get kapp to skip waiting on some resources?
 
 kapp allows to control waiting behavior per resource via [resource annotations](apply-waiting.md#controlling-waiting-via-resource-annotations). When used, the resource will be applied to the cluster, but will not wait to reconcile.
+
+---
+## Why does kapp add `kapp.k14s.io/app` labels to my resources?
+
+`kapp` adds a `kapp.k14s.io/app` label to keep track of which app resources are part of. This can cause issues
+in situations where controllers or custom resources are used to deploy resources, as it may result in mismatches
+between selectors and the resources selected, e.g. a service selector not matching any pods.
+
+The behaviour can be [disabled on a per-resource basis](https://carvel.dev/kapp/docs/v0.46.0/config/#labelscopingrules),
+or globally with the CLI flag `--default-label-scoping-rules=false`.
+
+---
+## Does kapp support templating or variable substitution?
+
+No, `kapp` has no built-in support for templating, substitutions, or other manifest transformations. Use a manifest generation and templating tool like [`ytt`](https://carvel.dev/ytt/) or [`kustomize`](https://kustomize.io/) to provide input into `kapp`.
